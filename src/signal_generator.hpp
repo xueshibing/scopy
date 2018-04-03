@@ -30,6 +30,7 @@
 #include <QSharedPointer>
 #include <QWidget>
 #include <QQueue>
+#include <QTimer>
 
 #include "apiObject.hpp"
 #include "filter.hpp"
@@ -169,6 +170,10 @@ private:
 	unsigned long nb_points;
 	double nr_of_periods;
 
+	QTimer *temperature_timer;
+	double m_iio_temperature;
+	double m_current_temperature;
+
 	QButtonGroup *settings_group;
 	QQueue<QPair<int, bool>> menuButtonActions;
 
@@ -270,6 +275,7 @@ private Q_SLOTS:
 	void startStop(bool start);
 	void setFunction(const QString& function);
 	void readPreferences();
+	void readTemperature();
 };
 
 class SignalGenerator_API : public ApiObject
@@ -310,6 +316,7 @@ class SignalGenerator_API : public ApiObject
 		   READ getWaveformHoldHigh WRITE setWaveformHoldHigh);
 	Q_PROPERTY(QList<double> waveform_holdlow
 		   READ getWaveformHoldLow WRITE setWaveformHoldLow);
+	Q_PROPERTY(double current_temp READ getCurrentTemp STORED false)
 
     Q_PROPERTY(QList<QString> buffer_file_path
                READ getBufferFilePath WRITE setBufferFilePath)
@@ -382,6 +389,7 @@ public:
     QList<double> getBufferPhase() const;
     void setBufferPhase(const QList<double>& list);
 
+	double getCurrentTemp();
 	explicit SignalGenerator_API(SignalGenerator *gen) :
 		ApiObject(), gen(gen) {}
 	~SignalGenerator_API() {}

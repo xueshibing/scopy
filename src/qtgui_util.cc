@@ -21,6 +21,7 @@
  */
 
 #include "utils.h"
+#include <iio.h>
 #include <QDebug>
 #include <QSizePolicy>
 
@@ -84,6 +85,11 @@ QwtDblClickPlotPicker::stateMachine(int n) const
   return new QwtPickerDblClickPointMachine;
 }
 
+std::vector<double> Util::vlsbTempCoefficients = {-0.00000003264,
+                                                  -0.0000001563,
+                                                  0.00001111};
+double Util::vlsbTempRef = 50;
+
 void Util::retainWidgetSizeWhenHidden(QWidget *w)
 {
 	QSizePolicy sp_retain = w->sizePolicy();
@@ -103,5 +109,31 @@ void Util::setWidgetNrOfChars(QWidget *w,
 		auto label_max_width = labelm.width(QString(maxNrOfChars,'X'));
 		w->setMaximumWidth(label_max_width);
 	}
+}
+
+double Util::getIioDevTemp(struct iio_context* ctx, const QString& devName)
+{
+	double temp = -273.15;
+
+	struct iio_device *dev = iio_context_find_device(ctx,
+		devName.toLatin1().data());
+
+	if (dev) {
+		struct iio_channel *chn = iio_device_find_channel(dev, "temp0",
+			false);
+		if (chn) {
+			double offset;
+			double raw;
+			double scale;
+
+			iio_channel_attr_read_double(chn, "offset", &offset);
+			iio_channel_attr_read_double(chn, "raw", &raw);
+			iio_channel_attr_read_double(chn, "scale", &scale);
+
+			temp = (raw + offset) * scale / 1000;
+		}
+	}
+
+	return temp;
 }
 

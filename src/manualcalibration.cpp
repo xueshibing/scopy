@@ -20,6 +20,7 @@
 #include "manualcalibration.h"
 #include "ui_manualcalibration.h"
 #include "ui_calibratetemplate.h"
+#include "utils.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -529,8 +530,8 @@ void ManualCalibration::on_saveButton_clicked()
 			   "/home",
 			   tr("ini (*.ini)"));
 	QFile file(fileName);
-	QString temp_ad9963 = QString::number(calib->getIioDevTemp(QString("ad9963")));
-	QString temp_fpga = QString::number(calib->getIioDevTemp(QString("xadc")));
+	QString temp_ad9963 = QString::number(Util::getIioDevTemp(ctx, QString("ad9963")));
+	QString temp_fpga = QString::number(Util::getIioDevTemp(ctx, QString("xadc")));
 
 	if (file.open(QFile::WriteOnly | QFile::Truncate)) {
 		QTextStream stream(&file);

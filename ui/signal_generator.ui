@@ -165,6 +165,22 @@ QPushButton:disabled {
            <property name="bottomMargin">
             <number>75</number>
            </property>
+           <item>
+            <widget class="QLabel" name="lblTempStatus">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -669,7 +685,6 @@ QTabBar::tab:selected {
                          </property>
                          <property name="font">
                           <font>
-                           
                            <pointsize>10</pointsize>
                           </font>
                          </property>
@@ -701,7 +716,6 @@ QTabBar::tab:selected {
                         <widget class="QLabel" name="label_9">
                          <property name="font">
                           <font>
-                           
                            <pointsize>10</pointsize>
                           </font>
                          </property>
@@ -733,7 +747,6 @@ QTabBar::tab:selected {
                         <widget class="QLabel" name="label_7">
                          <property name="font">
                           <font>
-                           
                            <pointsize>10</pointsize>
                           </font>
                          </property>

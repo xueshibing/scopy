@@ -20,8 +20,10 @@
 #include "calibration.hpp"
 #include "osc_adc.h"
 #include "hw_dac.h"
+#include "utils.h"
 
 #include <errno.h>
+#include <math.h>
 #include <QDebug>
 #include <QtGlobal>
 #include <iio.h>
@@ -404,6 +406,8 @@ bool Calibration::resetCalibration()
 	m_dac_a_ch_vlsb = 0.0034;
 	m_dac_b_ch_vlsb = 0.0034;
 
+	m_calib_temp = 0;
+
 	updateCorrections();
 	return true;
 }
@@ -674,6 +678,7 @@ bool Calibration::calibrateDACoffset()
 
 bool Calibration::calibrateDACgain()
 {
+	m_calib_temp = Util::getIioDevTemp(m_ctx, QString("ad9963"));
 	bool calibrated = false;
 
 	// connect ADC to DAC
@@ -718,6 +723,18 @@ bool Calibration::calibrateDACgain()
 
 	m_dac_a_ch_vlsb = voltage0 / 1024;
 	m_dac_b_ch_vlsb = voltage1 / 1024;
+
+	m_dac_a_ch_vlsb = m_dac_a_ch_vlsb
+			- (Util::vlsbTempCoefficients.at(0) *
+			   (pow(m_calib_temp, 2) - pow(Util::vlsbTempRef, 2)))
+			- (Util::vlsbTempCoefficients.at(1) *
+			   (m_calib_temp - Util::vlsbTempRef));
+
+	m_dac_b_ch_vlsb = m_dac_b_ch_vlsb
+			- (Util::vlsbTempCoefficients.at(0) *
+			   (pow(m_calib_temp, 2) - pow(Util::vlsbTempRef, 2)))
+			- (Util::vlsbTempCoefficients.at(1) *
+			   (m_calib_temp - Util::vlsbTempRef));
 
 	if (m_dac_a_buffer) {
 		iio_buffer_destroy(m_dac_a_buffer);
@@ -927,33 +944,6 @@ bool Calibration::setCalibrationMode(int mode)
 	return true;
 }
 
-/* FIXME: TODO: Move this into a HW class / lib M2k */
-double Calibration::getIioDevTemp(const QString& devName) const
-{
-	double temp = -273.15;
-
-	struct iio_device *dev = iio_context_find_device(m_ctx,
-		devName.toLatin1().data());
-
-	if (dev) {
-		struct iio_channel *chn = iio_device_find_channel(dev, "temp0",
-			false);
-		if (chn) {
-			double offset;
-			double raw;
-			double scale;
-
-			iio_channel_attr_read_double(chn, "offset", &offset);
-			iio_channel_attr_read_double(chn, "raw", &raw);
-			iio_channel_attr_read_double(chn, "scale", &scale);
-
-			temp = (raw + offset) * scale / 1000;
-		}
-	}
-
-	return temp;
-}
-
 /*
  * class Calibration_API
  */
@@ -1046,5 +1036,10 @@ void Calibration_API::restoreHardwareFromCalibMode()
 
 double Calibration_API::devTemp(const QString& devName)
 {
-	return calib->getIioDevTemp(devName);
+	return Util::getIioDevTemp(calib->m_ctx, devName);
+}
+
+double Calibration_API::get_dac_calib_temp()
+{
+	return calib->m_calib_temp;
 }

@@ -68,6 +68,7 @@
 #define INTERP_BY_100_CORR 1.168 // correction value at an interpolation by 100
 
 #define AMPLITUDE_VOLTS	5.0
+#define TEMP_READING_TIMEOUT 3000
 
 using namespace adiscope;
 using namespace gr;
@@ -483,6 +484,9 @@ SignalGenerator::SignalGenerator(struct iio_context *_ctx,
 		channels[i]->setColor(plot->getLineColor(i));
 	}
 
+	temperature_timer = new QTimer();
+	connect(temperature_timer, SIGNAL(timeout()), this, SLOT(readTemperature()));
+
 	plot->disableLegend();
 	plot->setPaletteColor(QColor("black"));
 
@@ -582,6 +586,9 @@ SignalGenerator::~SignalGenerator()
 	if (saveOnExit) {
 		api->save(*settings);
 	}
+	if (temperature_timer->isActive())
+		temperature_timer->stop();
+	delete temperature_timer;
 	delete api;
 
 	delete fileManager;
@@ -1295,6 +1302,9 @@ void SignalGenerator::start()
 		return;
 	}
 
+	m_iio_temperature = Util::getIioDevTemp(ctx, QString("ad9963"));
+	m_current_temperature = m_iio_temperature;
+	temperature_timer->start(TEMP_READING_TIMEOUT);
 	for (auto it = channels.begin(); it != channels.end(); ++it) {
 		if (!(*it)->enableButton()->isChecked()) {
 			continue;
@@ -1311,6 +1321,7 @@ void SignalGenerator::start()
 	}
 
 	if (enabled_channels.size()==0) {
+		temperature_timer->stop();
 		return;
 	}
 
@@ -1391,6 +1402,10 @@ void SignalGenerator::start()
 				}
 			}
 
+			// Temperature variation
+			vlsb = vlsb + (Util::vlsbTempCoefficients.at(0) * m_current_temperature * m_current_temperature)
+					+ (Util::vlsbTempCoefficients.at(1) * m_current_temperature)
+					+ Util::vlsbTempCoefficients.at(2);
 			// DAC_RAW = (-Vout / (voltage corresponding to a LSB));
 			// Multiplying with 16 because the HDL considers the DAC data as 16 bit
 			// instead of 12 bit(data is shifted to the left)
@@ -1444,11 +1459,29 @@ void SignalGenerator::start()
 
 void SignalGenerator::stop()
 {
+	temperature_timer->stop();
 	for (auto each : buffers) {
 		iio_buffer_destroy(each);
 	}
 
 	buffers.clear();
+	m_current_temperature = m_iio_temperature;
+}
+
+void SignalGenerator::readTemperature()
+{
+	if (temperature_timer->isActive()) {
+		temperature_timer->stop();
+	}
+	m_iio_temperature = Util::getIioDevTemp(ctx, QString("ad9963"));
+	if (ui->run_button->isChecked() &&
+			(abs(m_iio_temperature - m_current_temperature) >= 10)) {
+		ui->lblTempStatus->setText("Temperature drifted, for better accuracy Stop & Start the instrument.");
+
+	} else {
+		ui->lblTempStatus->setText("");
+	}
+	temperature_timer->start(TEMP_READING_TIMEOUT);
 }
 
 void SignalGenerator::startStop(bool pressed)
@@ -2945,4 +2978,9 @@ void SignalGenerator_API::setBufferPhase(const QList<double>& list){
         }
     }
     gen->filePhase->setValue(gen->getCurrentData()->file_phase);
+}
+
+double SignalGenerator_API::getCurrentTemp()
+{
+        return gen->m_current_temperature;
 }

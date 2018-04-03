@@ -1030,7 +1030,7 @@ void adiscope::ToolLauncher::deviceBtn_clicked(bool pressed)
 {
 	DeviceWidget *dev;
 	for (auto d : devices) {
-		if (d == sender()) {
+		if (d->isChecked()) {
 			dev = d;
 			break;
 		}
@@ -1110,6 +1110,7 @@ void adiscope::ToolLauncher::connectBtn_clicked(bool pressed)
 		}
 		d->setConnected(false, false);
 	}
+
 	selectedDev->connectButton()->setEnabled(false);
 	if (selectedDev != connectedDev) {
 		selectedDev->connectButton()->setText("Connecting...");
@@ -1126,6 +1127,7 @@ void adiscope::ToolLauncher::connectBtn_clicked(bool pressed)
 	}
 
 	if (connectedDev != selectedDev) {
+		selectedDev->connectButton()->setText("Connecting ...");
 		/* Connect to the selected device, if any */
 		if (selectedDev) {
 			QString uri = selectedDev->uri();
@@ -1880,8 +1882,8 @@ bool ToolLauncher_API::connect(const QString& uri)
 		done = true;
 	});
 
-	tl->ui->btnConnect->click();
 	dev->click();
+	dev->connectButton()->click();
 
 	do {
 		QCoreApplication::processEvents();

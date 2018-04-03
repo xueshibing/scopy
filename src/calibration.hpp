@@ -89,8 +89,6 @@ public:
 	bool resetCalibration();
 	void updateCorrections();
 
-	double getIioDevTemp(const QString& devName) const;
-
 	static void setChannelEnableState(struct iio_channel *chn, bool en);
 	static double average(int16_t *data, size_t numElements);
 	static float convSampleToVolts(float sample, float correctionGain = 1);
@@ -165,6 +163,7 @@ private:
 
 	bool m_initialized;
 	int m_calibration_mode;
+	double m_calib_temp;
 };
 
 class Calibration_API: public ApiObject
@@ -175,6 +174,7 @@ class Calibration_API: public ApiObject
 	Q_PROPERTY(QList<double> adc_gains READ get_adc_gains)
 	Q_PROPERTY(QList<double> dac_offsets READ get_dac_offsets)
 	Q_PROPERTY(QList<double> dac_gains READ get_dac_gains)
+	Q_PROPERTY(double dac_calib_temp READ get_dac_calib_temp STORED false)
 
 public:
 	explicit Calibration_API(Calibration *calib);
@@ -182,6 +182,7 @@ public:
 	QList<double> get_adc_gains() const;
 	QList<double> get_dac_offsets() const;
 	QList<double> get_dac_gains() const;
+	double get_dac_calib_temp();
 
 	Q_INVOKABLE void setHardwareInCalibMode();
 	Q_INVOKABLE void restoreHardwareFromCalibMode();

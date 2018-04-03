@@ -81,10 +81,10 @@ QPushButton* DeviceWidget::connectButton() const
 
 void DeviceWidget::on_btn_toggled(bool toggled)
 {
-        Q_EMIT selected(toggled);
         m_selected = toggled;
         setDynamicProperty(m_ui->widget, "selected",
                            toggled);
+        Q_EMIT selected(toggled);
         if (toggled) {
                 m_infoPage->getDeviceInfo();
         }

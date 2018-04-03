@@ -62,6 +62,9 @@ class Util
 public:
 	static void retainWidgetSizeWhenHidden(QWidget *w);
 	static void setWidgetNrOfChars(QWidget *w, int minNrOfChars, int maxNrOfChars=0);
+	static double getIioDevTemp(struct iio_context*, const QString& devName);
+	static std::vector<double> vlsbTempCoefficients;
+	static double vlsbTempRef;
 };
 
 #endif /* M2K_UTILS_H */
