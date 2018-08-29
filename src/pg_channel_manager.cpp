@@ -11,7 +11,7 @@
 #include "pattern_generator.hpp"
 #include "dynamicWidget.hpp"
 #include <glib.h>
-#include "boost/math/common_factor.hpp"
+#include "boost/integer/common_factor.hpp"
 #include "libsigrokdecode/libsigrokdecode.h"
 #include <utils.h>
 
@@ -1430,7 +1430,7 @@ uint32_t PatternGeneratorChannelManager::computeSuggestedSampleRate()
 				continue;
 			}
 
-			sampleRate = boost::math::lcm(patternSamplingFrequency, sampleRate);
+			sampleRate = boost::integer::lcm(patternSamplingFrequency, sampleRate);
 			qDebug()<<static_cast<PatternGeneratorChannelGroup *>
 			        (chg)->pattern->get_min_sampling_freq();
 		}
@@ -1450,7 +1450,7 @@ uint32_t PatternGeneratorChannelManager::computeSuggestedBufferSize(
 	if(size<minsize)
 		size=minsize;
 
-	uint32_t bufferSize = boost::math::lcm(size,(uint32_t)4);
+	uint32_t bufferSize = boost::integer::lcm(size,(uint32_t)4);
 	uint32_t maxNonPeriodic = size;
 	qDebug()<<"suggested buffersizes";
 
@@ -1465,7 +1465,7 @@ uint32_t PatternGeneratorChannelManager::computeSuggestedBufferSize(
 			}
 
 			if (static_cast<PatternGeneratorChannelGroup *>(chg)->pattern->is_periodic()) {
-				bufferSize = boost::math::lcm(patternBufferSize, bufferSize);
+				bufferSize = boost::integer::lcm(patternBufferSize, bufferSize);
 				qDebug()<<static_cast<PatternGeneratorChannelGroup *>
 				        (chg)->pattern->get_required_nr_of_samples(sample_rate,
 				                        chg->get_channel_count());

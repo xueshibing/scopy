@@ -40,7 +40,7 @@
 #include <QButtonGroup>
 #include <utils.h>
 
-#include <boost/math/common_factor.hpp>
+#include <boost/integer/common_factor.hpp>
 
 ///* pulseview and sigrok */
 #include "pulseview/pv/mainwindow.hpp"

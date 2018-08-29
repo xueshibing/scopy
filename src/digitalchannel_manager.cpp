@@ -19,7 +19,7 @@
 #include <QFileDialog>
 
 ///* pulseview and sigrok */
-#include <boost/math/common_factor.hpp>
+#include <boost/integer/common_factor.hpp>
 #include "pulseview/pv/mainwindow.hpp"
 #include "pulseview/pv/devices/binarybuffer.hpp"
 #include "pulseview/pv/devicemanager.hpp"

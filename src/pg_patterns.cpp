@@ -28,7 +28,7 @@
 #include <QMap>
 
 #include <errno.h>
-#include "boost/math/common_factor.hpp"
+#include "boost/integer/common_factor.hpp"
 #include "pg_patterns.hpp"
 #include "pattern_generator.hpp"
 
@@ -359,7 +359,7 @@ void PatternUI::destroy_ui() {}
 
 uint32_t ClockPattern::get_min_sampling_freq()
 {
-	return frequency * boost::math::lcm(duty_cycle_granularity,phase_granularity);
+	return frequency * boost::integer::lcm(duty_cycle_granularity,phase_granularity);
 }
 
 uint32_t ClockPattern::get_required_nr_of_samples(uint32_t sample_rate,
@@ -383,7 +383,7 @@ void ClockPattern::set_duty_cycle(float value)
 
 	duty_cycle = value;
 	auto max = 100;
-	duty_cycle_granularity = 100/boost::math::gcd((int)value, max);
+	duty_cycle_granularity = 100/boost::integer::gcd((int)value, max);
 }
 
 float ClockPattern::get_frequency() const
@@ -414,7 +414,7 @@ void ClockPattern::set_phase(int value)
 	}
 
 	auto max=360;
-	phase_granularity=360/boost::math::gcd((int)phase,max);
+	phase_granularity=360/boost::integer::gcd((int)phase,max);
 
 }
 
