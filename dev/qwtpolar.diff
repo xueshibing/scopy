@@ -1,0 +1,20 @@
+--- qwtpolarconfig.pri	2014-09-19 13:28:24.318002000 +0300
++++ qwtpolarconfig.pri	2018-09-17 14:58:03.892000000 +0300
+@@ -16,7 +16,7 @@
+ QWT_POLAR_VERSION      = $${QWT_POLAR_VER_MAJ}.$${QWT_POLAR_VER_MIN}.$${QWT_POLAR_VER_PAT}
+ 
+ unix {
+-    QWT_POLAR_INSTALL_PREFIX    = /usr/local/qwtpolar-$$QWT_POLAR_VERSION
++    QWT_POLAR_INSTALL_PREFIX    = /usr/local
+ }
+ 
+ win32 {
+@@ -77,7 +77,7 @@
+ # Otherwise you have to build them from the examples directory.
+ ######################################################################
+ 
+-QWT_POLAR_CONFIG     += QwtPolarExamples
++#QWT_POLAR_CONFIG     += QwtPolarExamples
+ 
+ ######################################################################
+ # When Qt has been built as framework qmake wants 
