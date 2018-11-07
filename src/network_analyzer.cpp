@@ -455,6 +455,165 @@ void NetworkAnalyzer::on_btnExport_clicked()
 	}
 }
 
+void NetworkAnalyzer::printFrequencyArray()
+{
+
+	getFrequencyArray();
+
+}
+
+void NetworkAnalyzer::getFrequencyArray()
+{
+	QVector<double> ret;
+	iterations.clear();
+
+	unsigned int steps = (unsigned int) samplesCount->value();
+	double min_freq = minFreq->value();
+	double max_freq = maxFreq->value();
+	double log10_min_freq = log10(min_freq);
+	double log10_max_freq = log10(max_freq);
+	double step;
+
+	bool is_log = ui->btnIsLog->isChecked();
+	if (is_log)
+		step = (log10_max_freq - log10_min_freq) / (double)(steps - 1);
+	else
+		step = (max_freq - min_freq) / (double)(steps - 1);
+
+	for (unsigned int i = 0; i < steps; ++i) {
+		double frequency;
+		if (is_log) {
+			frequency = pow(10.0,
+					log10_min_freq + (double) i * step);
+		} else {
+			frequency = min_freq + (double) i * step;
+		}
+		ret.push_back(frequency);
+	}
+
+
+
+	QVector<double> adjFreq;
+	adjFreq.resize(ret.size());
+
+	auto sampleRates = SignalGenerator::get_available_sample_rates(iio_channel_get_device(dac1));
+	qSort(sampleRates.begin(), sampleRates.end(), qLess<unsigned int>());
+
+	for (int i = 0; i < ret.size(); ++i) {
+		double freq = ret[i];
+
+		double next = (i != ret.size() - 1)? ret[i+1] : sampleRates.back();
+		double prev = (i > 0) ? ret[i - 1] : ret[i];
+
+		next -= ((next - freq) * 0.5); // 50%
+		prev += ((freq - prev) * 0.5);
+
+//		std::cout << " prev: " << prev << " current: " << freq << " next: " << next << std::endl;
+
+		bool stop = false;
+		adjFreq[i] = ret[i];
+		for (int j = 1; j < 1024 && !stop; ++j) {
+			double integral;
+			double dummy;
+			double fract = modf(1.0/(double)j,&dummy);
+
+			for (auto rate : sampleRates) {
+				modf(rate / freq, &integral);
+				if (integral < 2.0) {
+					continue;
+				}
+				double newFrequency = rate / (integral + fract);
+				if (newFrequency > prev && newFrequency < next && (integral * j > 2)) {
+					stop = true;
+					adjFreq[i] = newFrequency;
+//					std::cout << i << " rate : " << rate << "  new freq: " << newFrequency << " old freq: " << freq <<
+//						     " integral " << integral << " fract " << fract << "(j= " << j << " )" << std::endl;
+					size_t bufferSize = integral * j;
+
+					while (bufferSize & 0x3) {
+						bufferSize <<=1;
+					}
+					while (bufferSize < 1024) {
+						bufferSize <<=1;
+					}
+					std::cout << "FREQUENCY: " << newFrequency << " BUFFERSIZE: " << bufferSize << " RATE: " << rate << std::endl;
+
+					iterations.push_back(networkIteration(newFrequency, rate, bufferSize));
+					break;
+				}
+			}
+
+		}
+		if (!stop) {
+//			std::cout << "ERROR for frq " << freq << std::endl;
+		}
+	}
+}
+
+size_t NetworkAnalyzer::get_samples_count(double frequency, const struct iio_device *dev, double best_rate, bool perfect)
+{
+	size_t size = 1;
+	size_t max_buffer_size = 128 * 1024 /
+			(size_t) iio_device_get_sample_size(dev);
+
+
+	double ratio, fract;
+	ratio = best_rate / frequency;
+	ratio = SignalGenerator::get_best_ratio(ratio, (double)(max_buffer_size / 4), &fract);
+
+	if (perfect && fract != 0.0) {
+		return 0;
+	}
+
+	size = (size_t)ratio;
+
+	while (size & 0x3) {
+		size <<= 1;
+	}
+
+	/* The buffer size shouldn't be too small */
+	while (size < 1024) {
+		size <<= 1;
+	}
+
+	if (size > max_buffer_size) {
+		return 0;
+	}
+
+	return size;
+}
+
+double NetworkAnalyzer::get_best_rate(const struct iio_device *dev, double frequency)
+{
+	QVector<unsigned long> values = SignalGenerator::get_available_sample_rates(dev);
+
+	for (unsigned long rate : values) {
+		size_t buf_size = get_samples_count(frequency, dev, rate, true);
+
+		if (buf_size) {
+			return rate;
+		}
+
+		qDebug(CAT_SIGNAL_GENERATOR) << QString("Rate %1 not ideal").arg(rate);
+	}
+
+	qSort(values.begin(), values.end(), qGreater<unsigned long>());
+
+	for (unsigned long rate : values) {
+		size_t buf_size = get_samples_count(frequency, dev, rate);
+
+		if (buf_size) {
+			//std::cout << "Using highest rate for frequency " << frequency << " with buffer size: " << buf_size << std::endl;
+			return rate;
+		}
+
+		qDebug(CAT_SIGNAL_GENERATOR) << QString("Rate %1 not possible").arg(rate);
+	}
+
+	throw std::runtime_error("Unable to calculate best sample rate");
+}
+
+
 void NetworkAnalyzer::updateNumSamples()
 {
 	if (!ui->run_button->isChecked())
@@ -534,7 +693,6 @@ bool is_log = ui->btnIsLog->isChecked();
 		unsigned long rate = get_best_sample_rate(dev1, frequency);
 		size_t samples_count = get_sin_samples_count(
 				dev1, rate, frequency);
-		unsigned long adc_rate;
 
 		double amplitudeValue = amplitude->value();
 		double offsetValue = offset->value();
@@ -563,7 +721,45 @@ bool is_log = ui->btnIsLog->isChecked();
 			iio_device_attr_write_bool(dev1, "dma_sync", false);
 		}
 
-		adc_rate = get_best_sample_rate(adc, frequency);
+		// Compute buffer_size for exactly 2 periods
+		// knowing the frequency compute the time it will take to capture 2 periods
+
+		size_t nrOfPeriods = 16; // prefer
+		double timePerPeriod = 1.0 / frequency; // TODO: how many decimals?? 2, 3, 4??
+
+		size_t adc_rate = 0;
+		size_t minBufferToAcceptRate = 2; // TODO: 2? 3?? 4??
+		size_t minBufferSize = 1024;
+
+		size_t buffer_size = 0;
+
+		QVector<unsigned long> sampleRates = SignalGenerator::get_available_sample_rates(adc);
+		qSort(sampleRates.begin(), sampleRates.end(), qLess<unsigned long>());
+		for (const auto &rate : sampleRates) {
+
+			buffer_size = rate * timePerPeriod * nrOfPeriods;
+
+			if (rate / frequency < 2) {
+				continue;
+			}
+
+			while (buffer_size & 0x3) {
+				buffer_size <<= 1;
+			}
+			while (buffer_size < 1024) {
+				buffer_size <<= 1;
+			}
+
+			if (buffer_size > 16536) {
+				adc_rate = rate;
+				break;
+			}
+		}
+
+		if (adc_rate == 0) { // TODO: ??? needed
+			adc_rate = sampleRates.back();
+		}
+
 		adc_dev->setSampleRate(adc_rate);
 
 		/* Lock the flowgraph if we are already started */
@@ -571,8 +767,6 @@ bool is_log = ui->btnIsLog->isChecked();
 		if (started)
 			iio->lock();
 
-		size_t buffer_size = get_sin_samples_count(
-				adc, adc_rate, frequency);
 		if(buffer_size == 0) {
 			qDebug(CAT_NETWORK_ANALYZER) << "buffer size 0";
 			return;
@@ -642,6 +836,7 @@ bool is_log = ui->btnIsLog->isChecked();
 			phase = values[2];
 			got_it = true;
 		});
+
 
 		iio->start(id1);
 		iio->start(id2);

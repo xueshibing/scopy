@@ -121,6 +121,8 @@ namespace adiscope {
 		void triggerRightMenuToggle(CustomPushButton *btn, bool checked);
 		void toggleRightMenu(CustomPushButton *btn, bool checked);
 
+		void printFrequencyArray();
+		void getFrequencyArray();
 	private Q_SLOTS:
 		void startStop(bool start);
 		void updateNumSamples();
