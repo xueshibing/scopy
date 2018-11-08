@@ -27,22 +27,21 @@
 #include "ui_network_analyzer.h"
 #include "filemanager.h"
 
-#include <gnuradio/analog/sig_source_c.h>
-#include <gnuradio/analog/sig_source_f.h>
+#include <gnuradio/analog/sig_source.h>
+#include <gnuradio/analog/sig_source.h>
 #include <gnuradio/analog/sig_source_waveform.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 #include <gnuradio/blocks/complex_to_mag_squared.h>
 #include <gnuradio/blocks/float_to_short.h>
 #include <gnuradio/blocks/head.h>
-#include <gnuradio/blocks/moving_average_cc.h>
-#include <gnuradio/blocks/multiply_cc.h>
+#include <gnuradio/blocks/moving_average.h>
+#include <gnuradio/blocks/multiply.h>
 #include <gnuradio/blocks/multiply_conjugate_cc.h>
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/null_source.h>
 #include <gnuradio/blocks/rotator_cc.h>
 #include <gnuradio/blocks/skiphead.h>
-#include <gnuradio/blocks/vector_sink_f.h>
-#include <gnuradio/blocks/vector_sink_s.h>
+#include <gnuradio/blocks/vector_sink.h>
 #include <gnuradio/top_block.h>
 
 #include <boost/make_shared.hpp>
