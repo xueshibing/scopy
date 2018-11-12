@@ -1594,19 +1594,19 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 
 	}
 
-	if (filter->compatible(TOOL_LOGIC_ANALYZER)
-	    || filter->compatible(TOOL_PATTERN_GENERATOR)) {
-		bool success = loadDecoders(QCoreApplication::applicationDirPath() +
-					"/decoders");
+//	if (filter->compatible(TOOL_LOGIC_ANALYZER)
+//	    || filter->compatible(TOOL_PATTERN_GENERATOR)) {
+//		bool success = loadDecoders(QCoreApplication::applicationDirPath() +
+//					"/decoders");
 
-		if (!success) {
-			search_timer->stop();
+//		if (!success) {
+//			search_timer->stop();
 
-			QMessageBox error(this);
-			error.setText("There was a problem initializing libsigrokdecode. Some features may be missing");
-			error.exec();
-		}
-	}
+//			QMessageBox error(this);
+//			error.setText("There was a problem initializing libsigrokdecode. Some features may be missing");
+//			error.exec();
+//		}
+//	}
 
 	if (filter->compatible(TOOL_DIGITALIO)) {
 		dio = new DigitalIO(ctx, filter, toolMenu["Digital IO"]->getToolStopBtn(),
@@ -1627,14 +1627,14 @@ bool adiscope::ToolLauncher::switchContext(const QString& uri)
 		});
 	}
 
-	if (filter->compatible(TOOL_LOGIC_ANALYZER)) {
-		logic_analyzer = new LogicAnalyzer(ctx, filter, toolMenu["Logic Analyzer"]->getToolStopBtn(),
-				&js_engine, this);
-		toolList.push_back(logic_analyzer);
-		connect(logic_analyzer, &LogicAnalyzer::showTool, [=]() {
-			toolMenu["Logic Analyzer"]->getToolBtn()->click();
-		});
-	}
+//	if (filter->compatible(TOOL_LOGIC_ANALYZER)) {
+//		logic_analyzer = new LogicAnalyzer(ctx, filter, toolMenu["Logic Analyzer"]->getToolStopBtn(),
+//				&js_engine, this);
+//		toolList.push_back(logic_analyzer);
+//		connect(logic_analyzer, &LogicAnalyzer::showTool, [=]() {
+//			toolMenu["Logic Analyzer"]->getToolBtn()->click();
+//		});
+//	}
 
 
 	if (filter->compatible((TOOL_PATTERN_GENERATOR))) {

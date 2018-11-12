@@ -86,6 +86,17 @@ background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0.1, y2:0, stop:0 r
          </spacer>
         </item>
         <item>
+         <widget class="QPushButton" name="test">
+          <property name="styleSheet">
+           <string notr="true">background-color: blue;
+</string>
+          </property>
+          <property name="text">
+           <string>test</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="run_button">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">

@@ -42,7 +42,6 @@
 #include <gnuradio/blocks/rotator_cc.h>
 #include <gnuradio/blocks/skiphead.h>
 #include <gnuradio/blocks/vector_sink.h>
-#include <gnuradio/top_block.h>
 
 #include <boost/make_shared.hpp>
 
@@ -50,6 +49,7 @@
 #include <QThread>
 #include <QFileDialog>
 #include <QDateTime>
+#include <QElapsedTimer>
 
 #include <iio.h>
 #include <network_analyzer_api.hpp>
@@ -359,6 +359,9 @@ NetworkAnalyzer::NetworkAnalyzer(struct iio_context *ctx, Filter *filt,
 	img.save(fileName, 0, -1);
     });
 
+
+//	top_block = gr::make_top_block("Signal Generator");
+
 }
 
 NetworkAnalyzer::~NetworkAnalyzer()
@@ -499,6 +502,7 @@ void NetworkAnalyzer::getFrequencyArray()
 	auto sampleRates = SignalGenerator::get_available_sample_rates(iio_channel_get_device(dac1));
 	qSort(sampleRates.begin(), sampleRates.end(), qLess<unsigned int>());
 
+	uint32_t lastRate = sampleRates[0];
 	for (int i = 0; i < ret.size(); ++i) {
 		double freq = ret[i];
 
@@ -512,33 +516,42 @@ void NetworkAnalyzer::getFrequencyArray()
 
 		bool stop = false;
 		adjFreq[i] = ret[i];
+
 		for (int j = 1; j < 1024 && !stop; ++j) {
 			double integral;
 			double dummy;
 			double fract = modf(1.0/(double)j,&dummy);
 
 			for (auto rate : sampleRates) {
-				modf(rate / freq, &integral);
-				if (integral < 2.0) {
+				if (rate < lastRate) {
 					continue;
 				}
+				modf(rate / freq, &integral);
+				if (integral < 2.5) {
+					continue;
+				}
+				if (integral < 14 && lastRate < sampleRates.back()) {
+					continue;
+				}
+
 				double newFrequency = rate / (integral + fract);
 				if (newFrequency > prev && newFrequency < next && (integral * j > 2)) {
 					stop = true;
 					adjFreq[i] = newFrequency;
-//					std::cout << i << " rate : " << rate << "  new freq: " << newFrequency << " old freq: " << freq <<
-//						     " integral " << integral << " fract " << fract << "(j= " << j << " )" << std::endl;
+					std::cout << i << " rate : " << rate << "  new freq: " << newFrequency << " old freq: " << freq <<
+						     " integral " << integral << " fract " << fract << "(j= " << j << " )" << std::endl;
 					size_t bufferSize = integral * j;
 
 					while (bufferSize & 0x3) {
-						bufferSize <<=1;
+						bufferSize <<= 1;
 					}
-					while (bufferSize < 1024) {
-						bufferSize <<=1;
+					while (bufferSize < 1280) {
+						bufferSize <<= 1;
 					}
 					std::cout << "FREQUENCY: " << newFrequency << " BUFFERSIZE: " << bufferSize << " RATE: " << rate << std::endl;
 
 					iterations.push_back(networkIteration(newFrequency, rate, bufferSize));
+					lastRate = rate;
 					break;
 				}
 			}
@@ -627,6 +640,23 @@ void NetworkAnalyzer::updateNumSamples()
 	ui->nicholsgraph->setNumSamples(num_samples);
 }
 
+size_t NetworkAnalyzer::gcd(size_t a, size_t b)
+{
+	for (;;) {
+		if (!a) {
+			return b;
+		}
+
+		b %= a;
+
+		if (!b) {
+			return a;
+		}
+
+		a %= b;
+	}
+}
+
 void NetworkAnalyzer::run()
 {
 	const struct iio_device *dev1 = iio_channel_get_device(dac1);
@@ -667,32 +697,17 @@ void NetworkAnalyzer::run()
 		}
 	}
 
-	unsigned int steps = (unsigned int) samplesCount->value();
-	double min_freq = minFreq->value();
-	double max_freq = maxFreq->value();
-	double log10_min_freq = log10(min_freq);
-	double log10_max_freq = log10(max_freq);
-	double step;
+	QVector<unsigned long> sampleRates = SignalGenerator::get_available_sample_rates(adc);
+	qSort(sampleRates.begin(), sampleRates.end(), qLess<unsigned long>());
 
-bool is_log = ui->btnIsLog->isChecked();
-	if (is_log)
-		step = (log10_max_freq - log10_min_freq) / (double)(steps - 1);
-	else
-		step = (max_freq - min_freq) / (double)(steps - 1);
+	getFrequencyArray();
+	uint32_t fixedRate = sampleRates[0];
+	for (unsigned int i = 0; !stop && i < iterations.size(); ++i) {
 
-	for (unsigned int i = 0; !stop && i < steps; i++) {
-		double frequency;
 
-		if (is_log) {
-			frequency = pow(10.0,
-					log10_min_freq + (double) i * step);
-		} else {
-			frequency = min_freq + (double) i * step;
-		}
-
-		unsigned long rate = get_best_sample_rate(dev1, frequency);
-		size_t samples_count = get_sin_samples_count(
-				dev1, rate, frequency);
+		unsigned long rate = iterations[i].rate;
+		size_t samples_count = iterations[i].bufferSize;
+		double frequency = iterations[i].frequency;
 
 		double amplitudeValue = amplitude->value();
 		double offsetValue = offset->value();
@@ -724,43 +739,65 @@ bool is_log = ui->btnIsLog->isChecked();
 		// Compute buffer_size for exactly 2 periods
 		// knowing the frequency compute the time it will take to capture 2 periods
 
-		size_t nrOfPeriods = 16; // prefer
+		size_t nrOfPeriods = 2; // prefer
 		double timePerPeriod = 1.0 / frequency; // TODO: how many decimals?? 2, 3, 4??
 
-		size_t adc_rate = 0;
+		size_t adc_rate = fixedRate;
 		size_t minBufferToAcceptRate = 2; // TODO: 2? 3?? 4??
 		size_t minBufferSize = 1024;
 
-		size_t buffer_size = 0;
+		uint32_t buffer_size = 0;
 
-		QVector<unsigned long> sampleRates = SignalGenerator::get_available_sample_rates(adc);
-		qSort(sampleRates.begin(), sampleRates.end(), qLess<unsigned long>());
+
+//		std::cout << "####COMPUTING BUFF SIZE FOR FREQUENCY: " << frequency << std::endl;
+
 		for (const auto &rate : sampleRates) {
-
 			buffer_size = rate * timePerPeriod * nrOfPeriods;
 
-			if (rate / frequency < 2) {
+			if (rate < fixedRate) {
 				continue;
 			}
 
-			while (buffer_size & 0x3) {
+			if (rate / frequency < 2.5) {
+				continue;
+			}
+
+			// to do change 14
+			if (rate / frequency < 14 && fixedRate < sampleRates.back()) {
+				continue;
+			}
+
+			if (buffer_size & 0x3) {
 				buffer_size <<= 1;
 			}
+
 			while (buffer_size < 1024) {
 				buffer_size <<= 1;
 			}
-
-			if (buffer_size > 16536) {
-				adc_rate = rate;
-				break;
+			adc_rate = rate;
+			if (fixedRate < rate) {
+				//std::cout << "@@@@@@@@SAMPLE RATE CHANGED FOR: " << frequency << std::endl;
 			}
+			fixedRate = rate;
+			break;
+//			if (buffer_size > 16536) {
+//				adc_rate = rate;
+
+//				break;
+//			}
 		}
 
-		if (adc_rate == 0) { // TODO: ??? needed
-			adc_rate = sampleRates.back();
-		}
+//		std::cout << "####COMPUTED BUFF SIZE FOR FREQUENCY: " << frequency << std::endl;
+//		std::cout << buffer_size << " Rate: " << adc_rate << std::endl;
 
-		adc_dev->setSampleRate(adc_rate);
+		uint32_t maxSR = 100e6;
+		adc_dev->setSampleRate(maxSR);
+		iio_device_attr_write_double(adc, "oversampling_ratio", maxSR/adc_rate);
+
+
+		std::cout << "Capturing at frequency: " << frequency << " with buffer size: " << buffer_size
+			  << " should take: " << (double)buffer_size / ((double)maxSR / ((double)maxSR/adc_rate))
+			  << " s" << std::endl;
 
 		/* Lock the flowgraph if we are already started */
 		bool started = iio->started();
@@ -837,9 +874,12 @@ bool is_log = ui->btnIsLog->isChecked();
 			got_it = true;
 		});
 
+		QElapsedTimer t;
+		t.start();
 
 		iio->start(id1);
 		iio->start(id2);
+
 
 		if (started)
 			iio->unlock();
@@ -852,6 +892,7 @@ bool is_log = ui->btnIsLog->isChecked();
 				break;
 		} while (!got_it);
 
+		std::cout << "Actual duration: " << t.elapsed() / 1000.0 << " s" << std::endl;
 
 		iio->stop(id1);
 		iio->stop(id2);
@@ -879,11 +920,13 @@ bool is_log = ui->btnIsLog->isChecked();
 			mag = 10.0 * log10(mag1) - 10.0 * log10(mag2);
 		}
 
-		qDebug(CAT_NETWORK_ANALYZER) << "Frequency" << frequency << "Hz," <<
-			adc_rate << "SPS," << buffer_size << "samples," <<
-			mag << "Mag," << phase << "Deg";
+
 
 		double phase_deg = phase * 180.0 / M_PI;
+
+		qDebug(CAT_NETWORK_ANALYZER) << "Frequency" << frequency << "Hz," <<
+			adc_rate << "SPS," << buffer_size << "samples," <<
+			mag << "Mag," << phase_deg << "Deg";
 
         QMetaObject::invokeMethod(&m_dBgraph,
 				 "plot",
@@ -1012,6 +1055,8 @@ struct iio_buffer * NetworkAnalyzer::generateSinWave(
 	if (!buf)
 		return buf;
 
+	std::cout << "started generation of sine wave " << std::endl;
+
 	auto top_block = gr::make_top_block("Signal Generator");
 
 	auto src = analog::sig_source_f::make(rate, analog::GR_SIN_WAVE,
@@ -1040,6 +1085,11 @@ struct iio_buffer * NetworkAnalyzer::generateSinWave(
 	const std::vector<short> &samples = vector->data();
 	const short *data = samples.data();
 
+	// stop
+	top_block->stop();
+	top_block->wait();
+	top_block->disconnect_all();
+
 	for (unsigned int i = 0; i < iio_device_get_channels_count(dev); i++) {
 		struct iio_channel *chn = iio_device_get_channel(dev, i);
 
@@ -1053,6 +1103,8 @@ struct iio_buffer * NetworkAnalyzer::generateSinWave(
 
 	iio_buffer_push(buf);
 
+	std::cout << "finished generation and push of sinewave" << std::endl;
+
 	return buf;
 }
 
@@ -1065,10 +1117,10 @@ void NetworkAnalyzer::configHwForNetworkAnalyzing()
 	}
 
 	auto m2k_adc = std::dynamic_pointer_cast<M2kAdc>(adc_dev);
-	if (m2k_adc) {
-		iio_device_attr_write_longlong(m2k_adc->iio_adc_dev(),
-			"oversampling_ratio", 1);
-	}
+//	if (m2k_adc) {
+//		iio_device_attr_write_longlong(m2k_adc->iio_adc_dev(),
+//			"oversampling_ratio", 1);
+//	}
 }
 
 void NetworkAnalyzer::onVbar1PixelPosChanged(int pos)

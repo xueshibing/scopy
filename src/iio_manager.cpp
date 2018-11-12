@@ -180,13 +180,13 @@ void iio_manager::start(iio_manager::port_id copy)
 	if (copy->enabled())
 		return;
 
-	qDebug(CAT_IIO_MANAGER) << "Enabling copy block" << copy->alias().c_str();
+	//qDebug(CAT_IIO_MANAGER) << "Enabling copy block" << copy->alias().c_str();
 	copy->set_enabled(true);
 
 	update_buffer_size_unlocked();
 
 	if (!_started) {
-		qDebug(CAT_IIO_MANAGER) << "Starting top block";
+		//qDebug(CAT_IIO_MANAGER) << "Starting top block";
 		top_block::start();
 	}
 
@@ -201,7 +201,7 @@ void iio_manager::stop(iio_manager::port_id copy)
 	if (!_started || !copy->enabled())
 		return;
 
-	qDebug(CAT_IIO_MANAGER) << "Disabling copy block" << copy->alias().c_str();
+//	qDebug(CAT_IIO_MANAGER) << "Disabling copy block" << copy->alias().c_str();
 	copy->set_enabled(false);
 
 	/* Verify whether all blocks are disabled */
@@ -210,7 +210,7 @@ void iio_manager::stop(iio_manager::port_id copy)
 		inuse = it->first->enabled();
 
 	if (!inuse) {
-		qDebug(CAT_IIO_MANAGER) << "Stopping top block";
+//		qDebug(CAT_IIO_MANAGER) << "Stopping top block";
 		top_block::stop();
 		top_block::wait();
 
@@ -270,13 +270,13 @@ void iio_manager::del_connection(gr::basic_block_sptr block, bool reverse)
 				continue;
 			}
 
-			qDebug(CAT_IIO_MANAGER) << "Removing" <<
-				(reverse ? "backwards" : "forward")
-				<< "connection between"
-				<< it->src->alias().c_str()
-				<< "port" << it->src_port << "and"
-				<< it->dst->alias().c_str()
-				<< "port" << it->dst_port;
+//			qDebug(CAT_IIO_MANAGER) << "Removing" <<
+//				(reverse ? "backwards" : "forward")
+//				<< "connection between"
+//				<< it->src->alias().c_str()
+//				<< "port" << it->src_port << "and"
+//				<< it->dst->alias().c_str()
+//				<< "port" << it->dst_port;
 			hier_block2::disconnect(it->src, it->src_port,
 					it->dst, it->dst_port);
 

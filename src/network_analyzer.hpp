@@ -30,6 +30,7 @@
 #include <QtConcurrentRun>
 #include "customPushButton.hpp"
 #include "scroll_filter.hpp"
+#include <gnuradio/top_block.h>
 
 
 extern "C" {
@@ -71,8 +72,31 @@ namespace adiscope {
 		struct iio_device *adc;
 		std::shared_ptr<GenericAdc> adc_dev;
 		boost::shared_ptr<iio_manager> iio;
+
+//		gr::top_block_sptr top_block;
+
         dBgraph m_dBgraph;
         dBgraph m_phaseGraph;
+
+	typedef struct NetworkAnalyzerIteration {
+		NetworkAnalyzerIteration():
+			frequency(0),
+			rate(0),
+			bufferSize(0) {}
+		NetworkAnalyzerIteration(double frequency,
+					 size_t rate,
+					 size_t bufferSize):
+			frequency(frequency),
+			rate(rate),
+			bufferSize(bufferSize) {}
+
+		double frequency;
+		size_t rate;
+		size_t bufferSize;
+	} networkIteration;
+
+	QVector<networkIteration> iterations;
+
 
         PlotLineHandleH *d_hCursorHandle1;
         PlotLineHandleH *d_hCursorHandle2;
@@ -105,7 +129,7 @@ namespace adiscope {
 				unsigned long rate,
 				double frequency);
 
-		static struct iio_buffer * generateSinWave(
+		struct iio_buffer * generateSinWave(
 				const struct iio_device *dev,
 				double frequency,
 				double amplitude,
@@ -123,6 +147,9 @@ namespace adiscope {
 
 		void printFrequencyArray();
 		void getFrequencyArray();
+		size_t get_samples_count(double frequency, const iio_device *dev, double best_rate, bool perfect = false);
+		double get_best_rate(const iio_device *dev, double frequency);
+		size_t gcd(size_t a, size_t b);
 	private Q_SLOTS:
 		void startStop(bool start);
 		void updateNumSamples();
