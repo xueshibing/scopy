@@ -30,7 +30,7 @@ brew_upgrade() {
 
 PYTHON="python3 python@2 python brew-pip"
 PACKAGES="qt cmake fftw bison gettext autoconf automake libtool libzip glib libusb $PYTHON"
-PACKAGES="$PACKAGES glibmm doxygen wget boost gnu-sed libmatio dylibbundler libxml2 pkg-config"
+PACKAGES="$PACKAGES glibmm doxygen wget boost gnu-sed libmatio dylibbundler libxml2 pkg-config libffi"
 
 for pak in $PACKAGES ; do
 	brew_install_or_upgrade $pak
