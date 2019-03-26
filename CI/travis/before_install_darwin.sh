@@ -33,7 +33,7 @@ PACKAGES="qt cmake fftw bison gettext autoconf automake libtool libzip glib libu
 PACKAGES="$PACKAGES glibmm doxygen wget boost gnu-sed libmatio dylibbundler libxml2 pkg-config"
 
 for pak in $PACKAGES ; do
-	brew_install $pak
+	brew_install_or_upgrade $pak
 done
 
 brew_upgrade python3
