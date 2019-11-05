@@ -54,6 +54,11 @@ install:
     # Install Inno Setup
     - choco install InnoSetup
 
+    - set PATH=C:\msys64\%MINGW_VERSION%\bin;%PATH%
+    - C:\msys64\usr\bin\bash -lc "git clone https://github.com/analogdevicesinc/libm2k.git"
+    - C:\msys64\usr\bin\bash -lc "cd libm2k && mkdir build && cd build && cmake -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=/c/msys64/%MINGW_VERSION%/ -DENABLE_TOOLS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_PYTHON=OFF -DENABLE_CSHARP=OFF -DCMAKE_C_COMPILER=%ARCH%-w64-mingw32-gcc.exe -DCMAKE_CXX_COMPILER=%ARCH%-w64-mingw32-g++.exe ../ && make -j all && make install"
+
+
 build_script:
     - set OLD_PATH=%PATH%
     - set DEST_FOLDER=scopy_%ARCH_BIT%
@@ -78,7 +83,7 @@ build_script:
     - C:\msys64\usr\bin\bash -lc "cp -r /c/projects/scopy/resources/decoders  /c/%DEST_FOLDER%/"
 
     - C:\msys64\usr\bin\bash -lc "tar -C /c/%DEST_FOLDER% --strip-components=3 -xJf /c/scopy-%MINGW_VERSION%-build-deps.tar.xz msys64/%MINGW_VERSION%/bin"
-    - C:\msys64\usr\bin\bash -lc "cd /%MINGW_VERSION%/bin ; cp -r libmatio-*.dll libhdf5-*.dll libszip*.dll libpcre*.dll libdouble-conversion*.dll libwinpthread-*.dll libgcc_*.dll libstdc++-*.dll libboost_{system,filesystem,atomic,program_options,regex,thread}-*.dll libglib-*.dll libintl-*.dll libiconv-*.dll libglibmm-2.*.dll libgmodule-2.*.dll libgobject-2.*.dll libffi-*.dll libsigc-2.*.dll libfftw3f-*.dll libicu{in,uc,dt}[!d]*.dll zlib*.dll libharfbuzz-*.dll libfreetype-*.dll libbz2-*.dll libpng16-*.dll libgraphite2.dll libjpeg-*.dll libsqlite3-*.dll libwebp-*.dll libxml2-*.dll liblzma-*.dll libxslt-*.dll libzip*.dll libpython3.*.dll libgnutls*.dll libnettle*.dll libhogweed*.dll libgmp*.dll libidn*.dll libp11*.dll libtasn*.dll libunistring*.dll libusb-*.dll libzstd*.dll /%MINGW_VERSION%/lib/python3.* /c/%DEST_FOLDER%/"
+    - C:\msys64\usr\bin\bash -lc "cd /%MINGW_VERSION%/bin ; cp -r libmatio-*.dll libhdf5-*.dll libszip*.dll libpcre*.dll libdouble-conversion*.dll libwinpthread-*.dll libgcc_*.dll libstdc++-*.dll libboost_{system,filesystem,atomic,program_options,regex,thread}-*.dll libglib-*.dll libintl-*.dll libiconv-*.dll libglibmm-2.*.dll libgmodule-2.*.dll libgobject-2.*.dll libffi-*.dll libsigc-2.*.dll libfftw3f-*.dll libicu{in,uc,dt}[!d]*.dll zlib*.dll libharfbuzz-*.dll libfreetype-*.dll libbz2-*.dll libpng16-*.dll libgraphite2.dll libjpeg-*.dll libsqlite3-*.dll libwebp-*.dll libxml2-*.dll liblzma-*.dll libxslt-*.dll libzip*.dll libpython3.*.dll libgnutls*.dll libnettle*.dll libhogweed*.dll libgmp*.dll libidn*.dll libp11*.dll libtasn*.dll libunistring*.dll libusb-*.dll libzstd*.dll libm2k*.dll /%MINGW_VERSION%/lib/python3.* /c/%DEST_FOLDER%/"
     - mkdir C:\scopy_%ARCH_BIT%\.debug
       #    - C:\msys64\usr\bin\bash -lc "/%MINGW_VERSION%/bin/objcopy -v --only-keep-debug /c/%DEST_FOLDER%/Scopy.exe /c/%DEST_FOLDER%/.debug/Scopy.exe.debug"
     - C:\msys64\usr\bin\bash -lc "dump_syms /c/%DEST_FOLDER%/Scopy.exe > /c/%DEST_FOLDER%/Scopy.exe.sym"
