@@ -109,9 +109,11 @@ find_package(Boost "1.53" COMPONENTS system filesystem thread REQUIRED)
 
 set(VC_PATH "$ENV{VS120COMNTOOLS}/../../VC")
 find_library(IIO_LIBRARIES NAMES iio libiio PATHS ${VC_PATH}/lib ${VC_PATH}/lib/amd64)
+find_library(M2K_LIBRARIES NAMES m2k libm2k)
 find_library(MATIO_LIBRARIES NAMES matio)
 
 find_path(IIO_INCLUDE_DIRS iio.h PATHS ${VC_PATH}/include)
+find_path(M2K_INCLUDE_DIRS libm2k/m2k.hpp )
 
 find_library(QWTPOLAR_LIBRARIES qwtpolar)
 find_path(QWTPOLAR_INCLUDE_DIRS qwt_polar_plot.h PATH_SUFFIXES qwt)
@@ -151,6 +153,7 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/src
 	${BREAKPAD_INCLUDE_DIRS}
 	${BREAKPAD_INCLUDE_DIRS}/breakpad
+	${M2K_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -267,6 +270,7 @@ target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
 		${GLIBMM_LIBRARIES}
 		${SIGCPP_LIBRARIES}
 		${GLIB_LIBRARIES}
+		${M2K_LIBRARIES}
 )
 
 if (NOT WIN32)
