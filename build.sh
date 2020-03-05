@@ -30,8 +30,8 @@ SCOPY_CMAKE_OPTS="
 	"
 
 echo "Download and install pre-compiled libraries ... "
-wget -q "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps-pacman.txt?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/scopy-$MINGW_VERSION-build-deps-pacman.txt
-wget -q "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps.tar.xz?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/scopy-$MINGW_VERSION-build-deps.tar.xz
+wget "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps-pacman.txt?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/scopy-$MINGW_VERSION-build-deps-pacman.txt
+wget "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps.tar.xz?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/scopy-$MINGW_VERSION-build-deps.tar.xz
 cd /c
 tar xJf scopy-$MINGW_VERSION-build-deps.tar.xz
 
