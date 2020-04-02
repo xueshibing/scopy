@@ -124,6 +124,7 @@ int main(int argc, char **argv)
 	qDebug()<<language;
 
 	QString languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+	qDebug()<<languageFileName;
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
