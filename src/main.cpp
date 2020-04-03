@@ -32,6 +32,8 @@
 #include "tool_launcher.hpp"
 #include "scopyApplication.hpp"
 
+#include <iostream>
+
 using namespace adiscope;
 
 int main(int argc, char **argv)
@@ -122,9 +124,11 @@ int main(int argc, char **argv)
 	}
 
 	qDebug()<<language;
+	cout<<language;
 
 	QString languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
 	qDebug()<<languageFileName;
+	cout<<languageFileName;
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
