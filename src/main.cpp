@@ -27,7 +27,7 @@
 #include <QDateTime>
 #include <QFontDatabase>
 #include <QTranslator>
-
+#include <QDebug>
 #include "config.h"
 #include "tool_launcher.hpp"
 #include "scopyApplication.hpp"
