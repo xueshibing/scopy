@@ -114,7 +114,8 @@ int main(int argc, char **argv)
 	f.open(QFile::ReadOnly);
 	QTextStream in (&f);
 	const QStringList content = in.readAll().split("\n");
-	QString language="default";
+    QString language="default";
+    qDebug()<<content;
 	for(auto s : content)
 	{
 		if(s.startsWith("language"))
@@ -123,11 +124,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	qDebug()<<language;
-
-	QString languageFileName=QDir(path+language+".qm").path();
+    qDebug()<<language;
+    QString languageFileName;
+    if(!language.startsWith("/"))
+        languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+    else
+        languageFileName=language;
 	qDebug()<<languageFileName;
-	printf("%s \n",languageFileName.toStdString().c_str());
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 

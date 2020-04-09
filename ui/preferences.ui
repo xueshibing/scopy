@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>963</width>
+    <width>979</width>
     <height>661</height>
    </rect>
   </property>
@@ -1591,6 +1591,9 @@ QCheckBox::indicator:checked { background-color: rgb(74,100,255); }</string>
                 <property name="topMargin">
                  <number>10</number>
                 </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
                 <property name="bottomMargin">
                  <number>10</number>
                 </property>
@@ -1598,6 +1601,13 @@ QCheckBox::indicator:checked { background-color: rgb(74,100,255); }</string>
                  <widget class="QLabel" name="label_21">
                   <property name="text">
                    <string>Language (requires app restart)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="languageLine">
+                  <property name="readOnly">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -1611,19 +1621,37 @@ QCheckBox::indicator:checked { background-color: rgb(74,100,255); }</string>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>40</width>
-                    <height>20</height>
+                    <width>10</width>
+                    <height>10</height>
                    </size>
                   </property>
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="languageCombo">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                 <widget class="QPushButton" name="browseBtn">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton
+{
+  color:#ffffff;
+  height: 30px;
+  border-radius: 4px;
+  background-color: #4a64ff;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  text-align: center;
+}
+
+QPushButton:hover
+{
+         background-color: #4a34ff;
+}</string>
+                  </property>
+                  <property name="text">
+                   <string>  Browse  </string>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>

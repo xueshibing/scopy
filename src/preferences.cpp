@@ -26,7 +26,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QMessageBox>
-
+#include <QFileDialog>
 using namespace adiscope;
 
 Preferences::Preferences(QWidget *parent) :
@@ -52,7 +52,8 @@ Preferences::Preferences(QWidget *parent) :
 	digital_decoders_enabled(true),
 	m_initialized(false),
 	show_ADC_digital_filters(false),
-	language("english")
+    	language("english"),
+    	m_useNativeDialogs(true)
 {
 	ui->setupUi(this);
 
@@ -152,7 +153,6 @@ Preferences::Preferences(QWidget *parent) :
 	});
 
 	ui->label_restart->setVisible(false);
-	ui->languageCombo->addItems(getLanguageList());
 
 	QString preference_ini_file = getPreferenceIniFile();
 	QSettings settings(preference_ini_file, QSettings::IniFormat);
@@ -160,8 +160,10 @@ Preferences::Preferences(QWidget *parent) :
 	pref_api->setObjectName(QString("Preferences"));
 	pref_api->load(settings);
 
-	connect(ui->languageCombo, &QComboBox::currentTextChanged, [=](QString lang) {
-		language = lang;
+    connect(ui->browseBtn, &QPushButton::clicked, this,
+            &Preferences::loadLanguage);
+
+    connect(ui->languageLine, &QLineEdit::textChanged, [=]() {
 		if (m_initialized)
 			ui->label_restart->setVisible(true);
 		else
@@ -200,6 +202,8 @@ void Preferences::showEvent(QShowEvent *event)
 {
 	setDynamicProperty(ui->sigGenNrPeriods, "invalid", false);
 	setDynamicProperty(ui->sigGenNrPeriods, "valid", true);
+    	QFileInfo info(language);
+    	QString languageName=info.fileName().remove(".qm");
 
 	ui->sigGenNrPeriods->setText(QString::number(sig_gen_periods_nr));
 	ui->oscLabelsCheckBox->setChecked(osc_labels_enabled);
@@ -215,8 +219,10 @@ void Preferences::showEvent(QShowEvent *event)
 	ui->oscFilteringCheckBox->setChecked(osc_filtering_enabled);
 	ui->histCheckBox->setChecked(mini_hist_enabled);
 	ui->decodersCheckBox->setChecked(digital_decoders_enabled);
-	ui->oscADCFiltersCheckBox->setChecked(show_ADC_digital_filters);
-	ui->languageCombo->setCurrentText(language);
+    	ui->oscADCFiltersCheckBox->setChecked(show_ADC_digital_filters);
+    	ui->languageLine->setReadOnly(true);
+    	ui->languageLine->setText(languageName);
+    	ui->browseBtn->parentWidget()->setEnabled(true);
 
 	QWidget::showEvent(event);
 }
@@ -227,9 +233,29 @@ QString Preferences::getPreferenceIniFile() const
 	QFileInfo fileInfo(settings.fileName());
 	QString preference_ini_file = fileInfo.absolutePath() + "/Preferences.ini";
 
-	return preference_ini_file;
+    return preference_ini_file;
+}
+bool Preferences::hasNativeDialogs() const
+{
+    return m_useNativeDialogs;
 }
 
+void Preferences::setNativeDialogs(bool nativeDialogs)
+{
+    m_useNativeDialogs = nativeDialogs;
+}
+void Preferences::loadLanguage()
+{
+    QString filePath = QFileDialog::getOpenFileName(this,
+         tr("Load language"), "", tr("Language files (*.qm)"),
+         nullptr, (m_useNativeDialogs ? QFileDialog::Options() : QFileDialog::DontUseNativeDialog));
+    if(!filePath.isEmpty()){
+        language=filePath;
+        QFileInfo info(filePath);
+        QString languageName = info.fileName().remove(".qm");
+        ui->languageLine->setText(languageName);
+    }
+}
 void Preferences::resetScopy()
 {
 	QMessageBox msgBox;
