@@ -128,7 +128,13 @@ int main(int argc, char **argv)
 
 	QString languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
 	qDebug()<<languageFileName;
-	printf("%s \n",languageFileName);
+	printf("%s \n",languageFileName.toStdString().c_str());
+	QDir directory(":/");
+	QStringList languages = directory.entryList(QStringList() << "*.qm" << "*.QM", QDir::Files);
+	for (const auto & file : languages) {
+		// file is of type QString
+		printf("Found language: %s\n",file.toStdStrinc().c_str());
+	}
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
