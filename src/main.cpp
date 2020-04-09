@@ -124,10 +124,11 @@ int main(int argc, char **argv)
 	}
 
 	qDebug()<<language;
+	printf("%s \n",language);
 
-	QString languageFileName=QDir(path+language+".qm").path();
+	QString languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
 	qDebug()<<languageFileName;
-	printf("%s \n",languageFileName.toStdString().c_str());
+	printf("%s \n",languageFileName);
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
