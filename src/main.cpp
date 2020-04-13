@@ -27,10 +27,12 @@
 #include <QDateTime>
 #include <QFontDatabase>
 #include <QTranslator>
+#include <QLocale>
 
 #include "config.h"
 #include "tool_launcher.hpp"
 #include "scopyApplication.hpp"
+
 
 using namespace adiscope;
 
@@ -113,17 +115,22 @@ int main(int argc, char **argv)
 	QTextStream in (&f);
 	const QStringList content = in.readAll().split("\n");
 	QString language="default";
-	for(auto s : content)
-	{
-		if(s.startsWith("language"))
-		{
-			language=s.split("=")[1];
-		}
-	}
+    for(auto s : content)
+    {
+        if(s.startsWith("language"))
+        {
+            language=s.split("=")[1];
+        }
+    }
 
-	qDebug()<<language;
-
-	QString languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+    
+    QString languageFileName;
+   
+    if(!language.startsWith("/"))
+             languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+    else
+             languageFileName=language;
+    //	}
 	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
@@ -173,3 +180,4 @@ int main(int argc, char **argv)
 	}
 	return app.exec();
 }
+
