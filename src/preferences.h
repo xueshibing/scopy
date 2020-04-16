@@ -97,22 +97,21 @@ public:
 	void setDigital_decoders_enabled(bool value);
 
 	bool getShowADCFilters() const ;
-    void setShowADCFilters(bool value);
-
-    QString getLanguageINI();
+	void setShowADCFilters(bool value);
+ 
 	QStringList getLanguageList();
-    QStringList getOptionsList();
-    bool hasNativeDialogs() const ;
-    void setNativeDialogs(bool value);
-    void detectOSLanguage();
+	QStringList getOptionsList();
+	bool hasNativeDialogs() const ;
+	void setNativeDialogs(bool value);
+
 Q_SIGNALS:
 
 	void notify();
-    void reset();
+	void reset();
 
 public Q_SLOTS:
-
-    QString loadLanguage();
+	
+	QString loadLanguage();
 
 
 private Q_SLOTS:
@@ -141,8 +140,8 @@ private:
 	bool show_ADC_digital_filters;
 	bool mini_hist_enabled;
 	bool digital_decoders_enabled;
-    bool m_initialized;
-    bool m_useNativeDialogs;
+	bool m_initialized;
+	bool m_useNativeDialogs;
 	QString language;
 
 	Preferences_API *pref_api;

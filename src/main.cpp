@@ -115,23 +115,47 @@ int main(int argc, char **argv)
 	QTextStream in (&f);
 	const QStringList content = in.readAll().split("\n");
 	QString language="default";
-    for(auto s : content)
-    {
-        if(s.startsWith("language"))
-        {
-            language=s.split("=")[1];
+	for(auto s : content)
+	{
+		if(s.startsWith("language"))
+		{
+			language=s.split("=")[1];
+		}
+	}
+
+	QString languageFileName;
+	QString osLanguage = QLocale::system().name().split("_")[0];
+	qDebug()<<osLanguage;
+	QDir directory(QCoreApplication::applicationDirPath()+"/resources/languages");
+	QStringList languages = directory.entryList(QStringList() << "*.qm",QDir::Files);
+	if(language == "auto"){
+		if(languages.contains("scopy_"+osLanguage+".qm")){
+			languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_"+osLanguage+".qm").path();
+			qDebug()<<"Found "<<osLanguage;
+			qDebug()<<languageFileName;
+		}
+		else{
+			languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_en.qm").path();
+			qDebug()<<"Setting to "<<languageFileName;
+		}
+	}
+	else{
+		if(languages.contains(language+".qm"))
+			languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+        else{
+		if(!language.endsWith(".qm")){
+			if(languages.contains("scopy_"+osLanguage+".qm"))
+				languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_"+osLanguage+".qm").path();
+                
+			else
+				languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_en.qm").path();
+		}
+		else
+			languageFileName = language;
         }
     }
-
-    
-    QString languageFileName;
-   
-    if(!language.startsWith("/"))
-             languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
-    else
-             languageFileName=language;
-    //	}
-	myappTranslator.load(languageFileName);
+    //languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+    myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
 
