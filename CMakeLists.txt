@@ -256,7 +256,7 @@ FILE(GLOB TS_FILES ${CMAKE_SOURCE_DIR}/resources/*.ts)
 set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/resources/languages)
 
 # Creates translation .ts files from ${CMAKE_SOURCE_DIR}
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+#qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 # Generate .qm files from the .ts files
 qt5_add_translation(QM_FILES ${TS_FILES})
