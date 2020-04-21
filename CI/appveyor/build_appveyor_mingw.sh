@@ -85,7 +85,7 @@ mkdir /c/$DEST_FOLDER
 cp /c/$BUILD_FOLDER/Scopy.exe /c/$DEST_FOLDER/
 cp /c/$BUILD_FOLDER/qt.conf /c/$DEST_FOLDER/
 mkdir /c/$DEST_FOLDER/resources
-cp /c/$BUILD_FOLDER/resources/languages /c/$DEST_FOLDER/resources
+cp -r /c/$BUILD_FOLDER/resources/languages /c/$DEST_FOLDER/resources
 
 /c/msys64/$MINGW_VERSION/bin/windeployqt.exe --dir /c/$DEST_FOLDER --release --no-system-d3d-compiler --no-compiler-runtime --no-quick-import --opengl --printsupport /c/$BUILD_FOLDER/Scopy.exe
 cp -r /c/projects/scopy/resources/decoders  /c/$DEST_FOLDER/
