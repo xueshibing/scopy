@@ -139,23 +139,14 @@ int main(int argc, char **argv)
 			qDebug()<<"Setting to "<<languageFileName;
 		}
 	}
+	else if(languages.contains(language+".qm")){
+		languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
+	}
 	else{
-		if(languages.contains(language+".qm"))
-			languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
-        else{
-		if(!language.endsWith(".qm")){
-			if(languages.contains("scopy_"+osLanguage+".qm"))
-				languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_"+osLanguage+".qm").path();
-                
-			else
-				languageFileName = QDir(QCoreApplication::applicationDirPath()+"/resources/languages/scopy_en.qm").path();
-		}
-		else
-			languageFileName = language;
-        }
-    }
-    //languageFileName=QDir(QCoreApplication::applicationDirPath()+"/resources/languages/"+language+".qm").path();
-    myappTranslator.load(languageFileName);
+		languageFileName = language;
+	}
+
+	myappTranslator.load(languageFileName);
 	app.installTranslator(&myappTranslator);
 
 
