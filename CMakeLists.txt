@@ -125,7 +125,12 @@ find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 set(VC_PATH "$ENV{VS120COMNTOOLS}/../../VC")
 find_library(IIO_LIBRARIES NAMES iio libiio PATHS ${VC_PATH}/lib ${VC_PATH}/lib/amd64)
 find_library(M2K_LIBRARIES NAMES m2k libm2k)
-find_library(MATIO_LIBRARIES NAMES matio)
+#find_library(MATIO_LIBRARIES NAMES matio)
+#if(${MATIO_LIBRARIES})
+#	message("MATIO FOUND" ${MATIO_LIBRARIES})
+#else()
+#	message("MATIO NOT FOUND" ${MATIO_LIBRARIES})
+#endif()
 
 find_path(IIO_INCLUDE_DIRS iio.h PATHS ${VC_PATH}/include)
 find_path(M2K_INCLUDE_DIRS libm2k/m2k.hpp)
@@ -297,7 +302,7 @@ target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
 		${Qt5Svg_LIBRARIES}
 		${Qt5Xml_LIBRARIES}
 		${IIO_LIBRARIES}
-		${MATIO_LIBRARIES}
+#		${MATIO_LIBRARIES}
 		${LIBSIGROK_LIBRARIES}
 		${LIBSIGROKCXX_LIBRARIES}
 		${LIBSIGROK_DECODE_LIBRARIES}
